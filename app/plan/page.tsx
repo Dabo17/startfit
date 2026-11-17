@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { EXERCISE_BY_ID } from "@/convex/exercises";
 import BottomNav from "@/components/BottomNav";
+import BuddyAvatar from "@/components/BuddyAvatar";
+import { computeStats, moodText } from "@/convex/gamification";
 import { useDeviceId } from "@/lib/device";
 
 export default function PlanPage() {
@@ -15,6 +17,8 @@ export default function PlanPage() {
   const plan = useQuery(api.plans.current, deviceId ? { deviceId } : "skip");
   const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
   const generatePlan = useAction(api.ai.generatePlan);
+  const buddy = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
+  const profile = useQuery(api.profiles.get, deviceId ? { deviceId } : "skip");
 
   const [active, setActive] = useState<number | null>(null);
   const [openWhy, setOpenWhy] = useState<Record<string, boolean>>({});
@@ -74,6 +78,36 @@ export default function PlanPage() {
       </div>
       <h1>{doneInPlan.length === 0 ? "Bereit für dein erstes Training?" : `Diese Woche: ${doneThisWeek} von ${plan.days.length}`}</h1>
       <p className="muted">{plan.summary}</p>
+
+      {buddy !== undefined && (
+        <Link href="/buddy" className="card mini-buddy" style={{ display: "flex" }}>
+          {buddy ? (
+            (() => {
+              const st = computeStats(workouts ?? [], profile?.daysPerWeek ?? plan.days.length);
+              return (
+                <>
+                  <div className="fig"><BuddyAvatar avatar={buddy.avatar} mood={st.mood} level={st.level} size={60} animate={false} /></div>
+                  <div style={{ flex: 1 }}>
+                    <div className="row between">
+                      <strong>{buddy.buddyName}</strong>
+                      <span className="tiny">Lvl {st.level} · ⚡ {st.energy}%</span>
+                    </div>
+                    <div className="small muted">{moodText(st.mood, buddy.buddyName)}</div>
+                  </div>
+                </>
+              );
+            })()
+          ) : (
+            <>
+              <div className="fig"><BuddyAvatar mood="start" size={60} animate={false} /></div>
+              <div style={{ flex: 1 }}>
+                <strong>Hol dir einen Fitness-Buddy</strong>
+                <div className="small muted">Er trainiert mit dir, sammelt XP und freut sich über jedes Training. →</div>
+              </div>
+            </>
+          )}
+        </Link>
+      )}
 
       {plan.source === "standard" && (
         <div className="banner">
@@ -149,8 +183,15 @@ export default function PlanPage() {
         })}
       </div>
 
-      <Link href={`/training/${dayIndex}`} className="btn">
+      <Link href={`/training/${dayIndex}`} className="btn" style={{ marginBottom: 12 }}>
         {dayIndex === nextIndex ? "Training starten" : "Dieses Training starten"}
+      </Link>
+      <Link href="/mythen" className="card flat row between" style={{ display: "flex" }}>
+        <div>
+          <strong>🔎 Mythen-Check</strong>
+          <div className="small muted">Tipp aus TikTok oder YouTube gehört? Prüf, ob er stimmt.</div>
+        </div>
+        <span className="link">→</span>
       </Link>
       <p className="footer-note">
         {plan.source === "ai" ? "Inhalte sind KI-generiert und ersetzen" : "Der Plan ersetzt"} keine ärztliche Beratung.

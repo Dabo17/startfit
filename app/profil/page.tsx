@@ -85,17 +85,26 @@ export default function ProfilePage() {
         </button>
       )}
 
+      <a href="/mythen" className="card flat row between" style={{ display: "flex", marginTop: 16 }}>
+        <div>
+          <strong>🔎 Mythen-Check</strong>
+          <div className="small muted">Fitness-Tipps aus dem Netz prüfen</div>
+        </div>
+        <span className="link">→</span>
+      </a>
+
       <div className="card flat" style={{ marginTop: 24 }}>
         <h3 style={{ marginBottom: 6 }}>Datenschutz</h3>
         <p className="small muted">
-          StartFit speichert nur deine Trainingsangaben, deinen Plan und deinen Verlauf – ohne Namen, E-Mail oder
-          Gesundheitsdaten. Die Daten sind an dieses Gerät gebunden.
+          StartFit speichert nur deine Trainingsangaben, deinen Plan, deinen Verlauf und deinen Buddy – ohne echten
+          Namen, E-Mail oder Gesundheitsdaten. Für Freunde sichtbar sind nur Spitzname, Buddy, Level und PLZ-Bereich
+          (erste 3 Ziffern), und nur wenn du das unter „Freunde“ einschaltest.
         </p>
         {!confirmDelete ? (
           <button className="btn danger" onClick={() => setConfirmDelete(true)}>Alle meine Daten löschen</button>
         ) : (
           <div className="stack">
-            <p className="small" style={{ margin: 0 }}><strong>Wirklich löschen?</strong> Profil, Plan und alle Trainings werden dauerhaft entfernt.</p>
+            <p className="small" style={{ margin: 0 }}><strong>Wirklich löschen?</strong> Profil, Plan, alle Trainings, dein Buddy und deine Freundschaften werden dauerhaft entfernt.</p>
             <button className="btn danger" onClick={doDelete} disabled={deleting}>
               {deleting ? "Wird gelöscht …" : "Ja, endgültig löschen"}
             </button>

@@ -8,6 +8,8 @@ import { api } from "@/convex/_generated/api";
 import { EXERCISE_BY_ID } from "@/convex/exercises";
 import { useDeviceId } from "@/lib/device";
 import { firstNumber, suggestionFor, unitOf } from "@/lib/progression";
+import { computeStats } from "@/convex/gamification";
+import BuddyAvatar from "@/components/BuddyAvatar";
 
 type SetState = { reps: string; weight: string; done: boolean };
 
@@ -20,6 +22,9 @@ export default function TrainingPage() {
   const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
   const saveWorkout = useMutation(api.workouts.save);
   const setFeedback = useMutation(api.workouts.setFeedback);
+  const buddy = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
+  const profile = useQuery(api.profiles.get, deviceId ? { deviceId } : "skip");
+  const [levelBefore, setLevelBefore] = useState<number | null>(null);
 
   const [state, setState] = useState<SetState[][] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +76,7 @@ export default function TrainingPage() {
       return;
     }
     setSaving(true);
+    setLevelBefore(computeStats(workouts ?? [], profile?.daysPerWeek ?? 3).level);
     try {
       const id = await saveWorkout({
         deviceId: deviceId!,
@@ -107,15 +113,25 @@ export default function TrainingPage() {
         console.error(e);
       }
     }
-    router.push("/fortschritt");
+    router.push(buddy ? "/buddy" : "/fortschritt");
   }
 
   if (savedId) {
+    const after = computeStats(workouts ?? [], profile?.daysPerWeek ?? 3);
+    const gained = Math.min(150, 50 + 5 * doneSets);
+    const levelUp = levelBefore !== null && after.level > levelBefore;
     return (
       <main className="shell no-nav">
         <div className="center-screen">
-          <div style={{ fontSize: 48 }} aria-hidden>🎉</div>
+          {buddy ? (
+            <div><BuddyAvatar avatar={buddy.avatar} mood="top" level={after.level} size={130} /></div>
+          ) : (
+            <div style={{ fontSize: 48 }} aria-hidden>🎉</div>
+          )}
           <h1>Training geschafft!</h1>
+          <div className="xp-gain">+{gained} XP</div>
+          {levelUp && <div className="banner info">🎉 Level {after.level} erreicht – {after.levelTitle}!</div>}
+          {buddy && <p className="small muted">{buddy.buddyName} ist wieder voller Energie.</p>}
           <p className="muted">{doneSets} von {totalSets} Sätzen erledigt. Wie war es für dich?</p>
           <div className="stack" style={{ marginTop: 10 }}>
             <button className="btn secondary" onClick={() => giveFeedback("zu_leicht")}>Zu leicht</button>
@@ -123,7 +139,7 @@ export default function TrainingPage() {
             <button className="btn secondary" onClick={() => giveFeedback("zu_schwer")}>Zu schwer</button>
             <button className="btn ghost" onClick={() => giveFeedback(null)}>Überspringen</button>
           </div>
-          <p className="tiny" style={{ marginTop: 12 }}>Dein nächstes Training passt Gewicht oder Wiederholungen daran an.</p>
+          <p className="tiny" style={{ marginTop: 12 }}>Dein nächstes Training passt Gewicht oder Wiederholungen daran an. Check-in: +10 XP.</p>
         </div>
       </main>
     );

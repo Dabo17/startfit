@@ -15,6 +15,13 @@ export const planDay = v.object({
   ),
 });
 
+export const avatarValidator = v.object({
+  skin: v.number(),
+  hair: v.number(),
+  hairColor: v.number(),
+  shirt: v.number(),
+});
+
 export default defineSchema({
   // Kein Name, keine E-Mail, keine Gesundheitsdaten (DSGVO Art. 9) – nur Trainingspräferenzen.
   profiles: defineTable({
@@ -59,4 +66,38 @@ export default defineSchema({
     ),
     feedback: v.optional(v.string()), // "zu_leicht" | "passt" | "zu_schwer"
   }).index("by_device", ["deviceId", "completedAt"]),
+
+  // Buddy + öffentliches Profil. Andere sehen nur Spitzname, Buddy, Level und PLZ-Bereich –
+  // nie die deviceId. Sichtbarkeit für "In der Nähe" ist Opt-in.
+  social: defineTable({
+    deviceId: v.string(),
+    buddyName: v.string(),
+    avatar: avatarValidator,
+    nickname: v.optional(v.string()),
+    plzArea: v.optional(v.string()), // nur die ersten 3 Ziffern
+    discoverable: v.boolean(),
+    friendCode: v.string(),
+    demo: v.optional(v.boolean()),
+    demoStats: v.optional(v.object({ totalXp: v.number(), weeklyXp: v.number(), weekStreak: v.number() })),
+    demoLabel: v.optional(v.string()),
+  })
+    .index("by_device", ["deviceId"])
+    .index("by_code", ["friendCode"])
+    .index("by_discoverable", ["discoverable"]),
+
+  friendships: defineTable({
+    from: v.id("social"),
+    to: v.id("social"),
+    status: v.string(), // "pending" | "accepted"
+    createdAt: v.number(),
+  })
+    .index("by_from", ["from"])
+    .index("by_to", ["to"]),
+
+  nudges: defineTable({
+    from: v.id("social"),
+    to: v.id("social"),
+    createdAt: v.number(),
+    seen: v.boolean(),
+  }).index("by_to", ["to", "createdAt"]),
 });
