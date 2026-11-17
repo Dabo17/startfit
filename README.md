@@ -21,6 +21,9 @@ Mobile Web-App: 5 Fragen → persönlicher Wochenplan mit „Warum?“ zu jeder 
 | P1 | Mythen-Check (stimmt / teilweise / stimmt nicht, Hinweis bei Nicht-Fitness-Themen) | ✅ |
 | P1 | Login per E-Mail-Link | ⏳ (ohne Login funktioniert die App auf einem Gerät) |
 | – | Löschen auf Knopfdruck, KI-Kennzeichnung, API-Key nur serverseitig | ✅ |
+| neu | Fitness-Buddy: eigene Figur, Energie sinkt ohne Training, Ausrüstung pro Level | ✅ |
+| neu | XP & Level (Training, Sätze, Check-in, Wochenziel), Wochen-Serie | ✅ |
+| neu | Freunde: Opt-in „In der Nähe“ (PLZ-Bereich), Freundes-Code, Wochen-Rangliste, Anstupsen | ✅ |
 
 ## Wie die KI eingebunden ist
 
@@ -53,4 +56,6 @@ app/                 Seiten (/, /onboarding, /plan, /uebung/[id], /training/[day
 components/          Onboarding, Navigation, Convex-Provider
 convex/              Schema, Queries/Mutations, KI-Actions, kuratierte Übungsliste, Plan-Logik
 lib/                 Geräte-ID, Progressionslogik
+convex/gamification  XP, Level, Energie/Laune des Buddys
+convex/social        Buddy, Freunde, Rangliste, Anstupsen (+ Demo-Profile)
 ```

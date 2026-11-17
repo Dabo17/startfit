@@ -83,6 +83,8 @@ export default function FriendsPage() {
 
   async function submitProfile() {
     setFormError(null);
+    if (nick.trim().length < 2) return setFormError("Bitte wähle einen Spitznamen (mind. 2 Zeichen).");
+    if (!/^\d{5}$/.test(plz)) return setFormError("Bitte gib eine 5-stellige Postleitzahl ein.");
     try {
       await saveSocial({ deviceId: deviceId!, nickname: nick, plz, discoverable: visible });
       setEditing(false);
