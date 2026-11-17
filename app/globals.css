@@ -315,3 +315,20 @@ ul.mistakes li { padding: 8px 10px; background: var(--bad-soft); color: #7e1d17;
 .mini-buddy { display: flex; gap: 12px; align-items: center; }
 .mini-buddy .fig { flex: 0 0 64px; height: 76px; display: flex; align-items: flex-end; justify-content: center; background: var(--accent-soft); border-radius: 16px; overflow: hidden; }
 .xp-gain { font-size: 28px; font-weight: 800; color: var(--accent); margin: 6px 0; }
+
+/* ---------- Schieberegler (Onboarding) ---------- */
+.slider-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.slider-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.slider-label { font-weight: 600; }
+.slider-value { font-size: 28px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+.range { -webkit-appearance: none; appearance: none; width: 100%; height: 36px; background: transparent; margin: 0; cursor: pointer; touch-action: pan-y; }
+.range:focus { outline: none; }
+.range::-webkit-slider-runnable-track { height: 10px; border-radius: 99px; background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct), var(--line) var(--pct), var(--line) 100%); }
+.range::-moz-range-track { height: 10px; border-radius: 99px; background: var(--line); }
+.range::-moz-range-progress { height: 10px; border-radius: 99px; background: var(--accent); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); margin-top: -10px; box-shadow: 0 2px 6px rgba(21,32,27,0.2); }
+.range::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); box-shadow: 0 2px 6px rgba(21,32,27,0.2); }
+.range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--accent-soft); }
+.slider-ticks { display: flex; justify-content: space-between; margin: 2px 4px 0; }
+.slider-ticks button { background: none; border: 0; font-size: 13px; color: var(--ink-3); font-weight: 600; padding: 4px 6px; min-width: 32px; }
+.slider-ticks button.on { color: var(--accent); }

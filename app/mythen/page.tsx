@@ -25,7 +25,7 @@ export default function MythPage() {
   const check = useAction(api.ai.mythCheck);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ verdict: string; explanation: string } | null>(null);
+  const [result, setResult] = useState<{ verdict: string; explanation: string; source?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
@@ -79,7 +79,9 @@ export default function MythPage() {
           <div className={`verdict ${result.verdict}`}>{VERDICT_LABEL[result.verdict] ?? result.verdict}</div>
           <p style={{ margin: 0 }}>{result.explanation}</p>
           {!["fehler", "kein_thema", "unbekannt"].includes(result.verdict) && (
-            <p className="tiny" style={{ marginTop: 10, marginBottom: 0 }}>Einschätzung nach sportwissenschaftlichem Konsens · ersetzt keine ärztliche Beratung</p>
+            <p className="tiny" style={{ marginTop: 10, marginBottom: 0 }}>
+              {result.source === "ai" ? "✦ KI-generierte Einschätzung" : "Einschätzung nach sportwissenschaftlichem Konsens"} · ersetzt keine ärztliche Beratung
+            </p>
           )}
         </div>
       )}

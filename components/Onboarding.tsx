@@ -29,8 +29,67 @@ const EXPERIENCE: Opt<string>[] = [
   { value: "unter6", label: "Unter 6 Monate" },
   { value: "neustart", label: "Neustart nach Pause" },
 ];
-const DAYS: Opt<number>[] = [2, 3, 4, 5].map((d) => ({ value: d, label: `${d}×` }));
-const MINUTES: Opt<number>[] = [20, 30, 45, 60].map((m) => ({ value: m, label: `${m} Min.` }));
+const DAY_STOPS = [2, 3, 4, 5];
+const DAY_HINTS: Record<number, string> = {
+  2: "Ideal für den Einstieg – gut in jeden Alltag einzubauen.",
+  3: "Empfohlen für Einsteiger: genug Training, genug Erholung.",
+  4: "Ambitioniert – dein Plan teilt Ober- und Unterkörper auf.",
+  5: "Sehr viel für den Anfang – Ruhetage bleiben wichtig.",
+};
+const MINUTE_STOPS = [20, 30, 45, 60];
+const MINUTE_HINTS: Record<number, string> = {
+  20: "Kurz und knackig – perfekt für volle Tage.",
+  30: "Kompakt: Aufwärmen plus die wichtigsten Übungen.",
+  45: "Genug Zeit für einen vollständigen Ganzkörperplan.",
+  60: "Viel Zeit – inklusive mehr Übungen und Ausdauer.",
+};
+
+function StepSlider({
+  label,
+  stops,
+  value,
+  onChange,
+  format,
+  hint,
+}: {
+  label: string;
+  stops: number[];
+  value: number;
+  onChange: (v: number) => void;
+  format: (v: number) => string;
+  hint: string;
+}) {
+  const index = Math.max(0, stops.indexOf(value));
+  const pct = (index / (stops.length - 1)) * 100;
+  return (
+    <div className="slider-card">
+      <div className="slider-head">
+        <span className="slider-label">{label}</span>
+        <span className="slider-value">{format(value)}</span>
+      </div>
+      <input
+        type="range"
+        className="range"
+        min={0}
+        max={stops.length - 1}
+        step={1}
+        value={index}
+        aria-label={label}
+        aria-valuetext={format(value)}
+        style={{ ["--pct" as any]: `${pct}%` }}
+        onChange={(e) => onChange(stops[parseInt(e.target.value, 10)])}
+      />
+      <div className="slider-ticks">
+        {stops.map((s) => (
+          <button key={s} type="button" className={s === value ? "on" : ""} onClick={() => onChange(s)}>
+            {s}
+          </button>
+        ))}
+      </div>
+      <p className="tiny" style={{ margin: "8px 0 0" }}>{hint}</p>
+    </div>
+  );
+}
 const LOCATIONS: Opt<string>[] = [
   { value: "gym", label: "Fitnessstudio", sub: "Maschinen, Hanteln, Kabelzug" },
   { value: "home_none", label: "Zuhause ohne Geräte", sub: "Nur mit eigenem Körpergewicht" },
@@ -96,7 +155,7 @@ export default function Onboarding({
   const generatePlan = useAction(api.ai.generatePlan);
 
   const [step, setStep] = useState(0); // 0-4 Fragen, 5 Hinweis, 6 Laden
-  const [a, setA] = useState<Answers>(initial ?? {});
+  const [a, setA] = useState<Answers>({ daysPerWeek: 3, minutes: 45, ...(initial ?? {}) });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [ackMedical, setAckMedical] = useState(false);
   const [ackPrivacy, setAckPrivacy] = useState(false);
@@ -224,7 +283,7 @@ export default function Onboarding({
   const hints = [
     "Dein Plan richtet Übungen und Wiederholungen danach aus.",
     "So starten wir mit dem passenden Umfang.",
-    "Damit der Plan realistisch in deine Woche passt.",
+    "Schieb die Regler – damit der Plan realistisch in deine Woche passt.",
     "Du bekommst nur Übungen, die du dort auch machen kannst.",
     "Damit Belastung und Aufwärmen zu deinem Tag passen.",
   ];
@@ -261,12 +320,27 @@ export default function Onboarding({
       )}
       {step === 2 && (
         <>
-          <span className="field-label">Tage pro Woche</span>
-          <Options name="Tage pro Woche" layout="four" options={DAYS} value={a.daysPerWeek} onChange={(v) => set({ daysPerWeek: v })} />
+          <StepSlider
+            label="Tage pro Woche"
+            stops={DAY_STOPS}
+            value={a.daysPerWeek ?? 3}
+            onChange={(v) => set({ daysPerWeek: v })}
+            format={(v) => `${v}×`}
+            hint={DAY_HINTS[a.daysPerWeek ?? 3]}
+          />
           {errors.daysPerWeek && <div className="field-error">{errors.daysPerWeek}</div>}
-          <span className="field-label">Minuten pro Einheit</span>
-          <Options name="Minuten pro Einheit" layout="four" options={MINUTES} value={a.minutes} onChange={(v) => set({ minutes: v })} />
+          <StepSlider
+            label="Minuten pro Einheit"
+            stops={MINUTE_STOPS}
+            value={a.minutes ?? 45}
+            onChange={(v) => set({ minutes: v })}
+            format={(v) => `${v} Min.`}
+            hint={MINUTE_HINTS[a.minutes ?? 45]}
+          />
           {errors.minutes && <div className="field-error">{errors.minutes}</div>}
+          <div className="banner info" style={{ marginTop: 4 }}>
+            Das sind ca. <strong>{(a.daysPerWeek ?? 3) * (a.minutes ?? 45)} Minuten</strong> Training pro Woche.
+          </div>
         </>
       )}
       {step === 3 && (

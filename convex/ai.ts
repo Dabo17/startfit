@@ -11,12 +11,24 @@ import {
   validateAiPlan,
 } from "./planLogic";
 
-const API_URL = "https://api.anthropic.com/v1/messages";
+// Unterstützt Claude (ANTHROPIC_API_KEY) und OpenAI (OPENAI_API_KEY).
+// Der Anbieter wird am Schlüssel erkannt – auch wenn er in der "falschen" Variable steht.
+type Provider = { kind: "anthropic" | "openai"; key: string };
+
+function provider(): Provider | null {
+  const keys = [process.env.OPENAI_API_KEY, process.env.ANTHROPIC_API_KEY]
+    .map((k) => (k ?? "").trim())
+    .filter((k) => k.length > 30);
+  const anthropic = keys.find((k) => k.startsWith("sk-ant-"));
+  if (anthropic) return { kind: "anthropic", key: anthropic };
+  const openai = keys.find((k) => k.startsWith("sk-"));
+  if (openai) return { kind: "openai", key: openai };
+  return null;
+}
 
 /** Ohne (vollständigen) Schlüssel läuft die App im Basis-Modus ohne KI. */
 function hasKey(): boolean {
-  const key = process.env.ANTHROPIC_API_KEY ?? "";
-  return key.startsWith("sk-ant-") && key.length > 30;
+  return provider() !== null;
 }
 
 // Basis-Modus: hinterlegte Antworten für häufige Mythen (ohne KI).
@@ -75,32 +87,58 @@ function knownMyth(text: string) {
   return KNOWN_MYTHS.find((m) => m.keys.test(text)) ?? null;
 }
 
-async function callClaude(system: string, user: string, maxTokens: number, timeoutMs: number) {
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!hasKey()) throw new Error("NO_KEY");
-  const model = process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
-  const request = (async () => {
-    const res = await fetch(API_URL, {
+async function requestAnthropic(key: string, system: string, user: string, maxTokens: number) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({
+      model: process.env.ANTHROPIC_MODEL || "claude-haiku-5-5",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const data: any = await res.json();
+  return (data.content ?? []).filter((c: any) => c.type === "text").map((c: any) => c.text).join("") as string;
+}
+
+async function requestOpenAI(key: string, system: string, user: string, maxTokens: number) {
+  const models = process.env.OPENAI_MODEL ? [process.env.OPENAI_MODEL] : ["gpt-4.1-mini", "gpt-4o-mini"];
+  let lastError = "";
+  for (const model of models) {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
+      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
-        system,
-        messages: [{ role: "user", content: user }],
+        temperature: 0.4,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
       }),
     });
-    if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 200)}`);
-    const data: any = await res.json();
-    return (data.content ?? [])
-      .filter((c: any) => c.type === "text")
-      .map((c: any) => c.text)
-      .join("") as string;
-  })();
+    if (res.ok) {
+      const data: any = await res.json();
+      return (data.choices?.[0]?.message?.content ?? "") as string;
+    }
+    lastError = `API ${res.status} (${model}): ${(await res.text()).slice(0, 300)}`;
+    // Nur bei unbekanntem Modell das nächste probieren
+    if (res.status !== 404 && res.status !== 400) break;
+  }
+  throw new Error(lastError);
+}
+
+async function callClaude(system: string, user: string, maxTokens: number, timeoutMs: number) {
+  const p = provider();
+  if (!p) throw new Error("NO_KEY");
+  const request =
+    p.kind === "anthropic"
+      ? requestAnthropic(p.key, system, user, maxTokens)
+      : requestOpenAI(p.key, system, user, maxTokens);
   let timer: any;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error("TIMEOUT")), timeoutMs);
@@ -143,7 +181,7 @@ Regeln:
 
 export const generatePlan = action({
   args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }): Promise<{ source: string; aiError: string | null }> => {
+  handler: async (ctx, { deviceId }): Promise<{ source: string; aiError: string | null; detail?: string | null; ms?: number }> => {
     const profileDoc = await ctx.runQuery(internal.profiles.getInternal, { deviceId });
     if (!profileDoc) throw new Error("Kein Profil gefunden");
     const p = toProfileInput(profileDoc);
@@ -152,6 +190,8 @@ export const generatePlan = action({
     let plan = skeleton;
     let source = "standard";
     let aiError: string | null = null;
+    let detail: string | null = null;
+    const started = Date.now();
 
     if (!hasKey()) {
       await ctx.runMutation(internal.plans.savePlan, {
@@ -192,13 +232,14 @@ ${JSON.stringify(
 )}
 
 Erstelle daraus den persönlichen Wochenplan mit Begründungen.`;
-      const text = await callClaude(PLAN_SYSTEM, user, 3000, 14000);
+      const text = await callClaude(PLAN_SYSTEM, user, 3000, 25000);
       const validated = validateAiPlan(extractJson(text), skeleton, p);
       if (validated) {
         plan = validated;
         source = "ai";
       } else {
         aiError = "Die KI-Antwort war unvollständig.";
+        detail = text.slice(0, 300);
       }
     } catch (e: any) {
       aiError =
@@ -207,8 +248,10 @@ Erstelle daraus den persönlichen Wochenplan mit Begründungen.`;
           : e?.message === "TIMEOUT"
             ? "Die KI hat zu lange gebraucht."
             : "Die KI war nicht erreichbar.";
-      console.error("generatePlan AI error:", e?.message ?? e);
+      detail = String(e?.message ?? e).slice(0, 300);
+      console.error("generatePlan AI error:", detail);
     }
+    console.log(`generatePlan: source=${source} provider=${provider()?.kind ?? "none"} ms=${Date.now() - started}`);
 
     await ctx.runMutation(internal.plans.savePlan, {
       deviceId,
@@ -217,7 +260,7 @@ Erstelle daraus den persönlichen Wochenplan mit Begründungen.`;
       notes: plan.notes,
       days: plan.days,
     });
-    return { source, aiError };
+    return { source, aiError, detail, ms: Date.now() - started };
   },
 });
 
@@ -230,7 +273,7 @@ Prüfe den Tipp aus Social Media nach aktuellem sportwissenschaftlichem Konsens.
 
 export const mythCheck = action({
   args: { text: v.string() },
-  handler: async (_ctx, { text }): Promise<{ verdict: string; explanation: string }> => {
+  handler: async (_ctx, { text }): Promise<{ verdict: string; explanation: string; source?: string }> => {
     const input = text.trim().slice(0, 1500);
     if (input.length < 5) {
       return { verdict: "kein_thema", explanation: "Bitte füge einen Tipp ein, den du prüfen möchtest." };
@@ -245,7 +288,7 @@ export const mythCheck = action({
       };
     }
     try {
-      const out = await callClaude(MYTH_SYSTEM, `Tipp: """${input}"""`, 600, 14000);
+      const out = await callClaude(MYTH_SYSTEM, `Tipp: """${input}"""`, 600, 20000);
       const json = extractJson(out);
       const verdicts = ["stimmt", "teilweise", "stimmt_nicht", "kein_thema"];
       const verdict = verdicts.includes(json.verdict) ? json.verdict : "teilweise";
@@ -253,7 +296,7 @@ export const mythCheck = action({
         verdict === "kein_thema"
           ? "Das scheint kein Fitness-Thema zu sein. Füge gern einen Trainingstipp aus TikTok, YouTube oder von Freunden ein – den prüfe ich für dich."
           : String(json.explanation ?? "").split(/\s+/).slice(0, 100).join(" ");
-      return { verdict, explanation };
+      return { verdict, explanation, source: "ai" };
     } catch (e: any) {
       console.error("mythCheck error:", e?.message ?? e);
       const m = knownMyth(input);
