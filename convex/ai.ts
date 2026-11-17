@@ -13,9 +13,71 @@ import {
 
 const API_URL = "https://api.anthropic.com/v1/messages";
 
+/** Ohne (vollständigen) Schlüssel läuft die App im Basis-Modus ohne KI. */
+function hasKey(): boolean {
+  const key = process.env.ANTHROPIC_API_KEY ?? "";
+  return key.startsWith("sk-ant-") && key.length > 30;
+}
+
+// Basis-Modus: hinterlegte Antworten für häufige Mythen (ohne KI).
+const KNOWN_MYTHS: { keys: RegExp; verdict: string; explanation: string }[] = [
+  {
+    keys: /jeden tag|täglich trainieren|jeden tag trainieren/i,
+    verdict: "stimmt_nicht",
+    explanation:
+      "Muskeln wachsen in der Pause, nicht während des Trainings. Für Einsteiger reichen 2–4 Einheiten pro Woche mit mindestens einem Ruhetag zwischen Krafteinheiten für dieselben Muskeln. Wer jeden Tag hart trainiert, erholt sich schlechter und riskiert Überlastung.",
+  },
+  {
+    keys: /bauchfett|bauch.*(fett|weg)|gezielt.*fett|fett.*gezielt|sit-?ups?.*fett|crunches?.*fett/i,
+    verdict: "stimmt_nicht",
+    explanation:
+      "Gezielt an einer Stelle Fett verbrennen geht nicht. Der Körper baut Fett überall nach seinem eigenen Muster ab. Bauchübungen stärken die Muskeln darunter – sichtbar wird der Bauch erst, wenn der gesamte Körperfettanteil sinkt, z. B. durch Ernährung und Training des ganzen Körpers.",
+  },
+  {
+    keys: /muskelkater/i,
+    verdict: "stimmt_nicht",
+    explanation:
+      "Muskelkater zeigt nur, dass eine Belastung ungewohnt war – nicht, dass das Training gut war. Mit der Zeit gewöhnt sich dein Körper daran und der Muskelkater wird weniger, obwohl du weiter Fortschritte machst. Besser messen: Schaffst du mehr Gewicht oder Wiederholungen?",
+  },
+  {
+    keys: /frauen.*(muskulös|massig|bullig|zu viele muskeln)|(muskulös|massig|bullig).*frauen/i,
+    verdict: "stimmt_nicht",
+    explanation:
+      "Großer Muskelaufbau braucht jahrelanges, gezieltes Training, viel Essen und hohe Testosteronwerte. Frauen haben deutlich weniger Testosteron. Krafttraining macht deshalb vor allem straffer, stärker und stabiler – nicht ungewollt massig.",
+  },
+  {
+    keys: /dehnen|stretch/i,
+    verdict: "teilweise",
+    explanation:
+      "Langes statisches Dehnen direkt vor dem Krafttraining kann die Kraft kurzfristig etwas senken. Besser zum Aufwärmen: lockere Bewegung und dynamische Mobilitätsübungen, wie sie in deinem Plan stehen. Statisches Dehnen passt gut nach dem Training oder an Ruhetagen.",
+  },
+  {
+    keys: /protein|eiweiß|shake/i,
+    verdict: "teilweise",
+    explanation:
+      "Genug Eiweiß hilft beim Muskelaufbau – ein Shake ist aber kein Muss. Für die meisten reicht eiweißreiches Essen wie Quark, Eier, Hülsenfrüchte, Fisch oder Fleisch. Ein Shake ist nur eine bequeme Ergänzung, wenn du es über Mahlzeiten nicht schaffst.",
+  },
+  {
+    keys: /schwitz/i,
+    verdict: "stimmt_nicht",
+    explanation:
+      "Wie stark du schwitzt, hängt vor allem von Temperatur, Veranlagung und Kleidung ab – nicht davon, wie effektiv dein Training war. Was du dabei auf der Waage verlierst, ist nur Wasser und nach dem Trinken wieder da.",
+  },
+  {
+    keys: /cardio.*(muskel|abbau)|ausdauer.*muskel.*(weg|abbau)/i,
+    verdict: "teilweise",
+    explanation:
+      "Moderates Ausdauertraining baut keine Muskeln ab und ist gut für Herz und Erholung. Nur sehr viel Ausdauertraining bei zu wenig Essen kann den Muskelaufbau bremsen. Für Einsteiger passen Kraft und etwas Ausdauer gut zusammen.",
+  },
+];
+
+function knownMyth(text: string) {
+  return KNOWN_MYTHS.find((m) => m.keys.test(text)) ?? null;
+}
+
 async function callClaude(system: string, user: string, maxTokens: number, timeoutMs: number) {
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error("NO_KEY");
+  if (!hasKey()) throw new Error("NO_KEY");
   const model = process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
   const request = (async () => {
     const res = await fetch(API_URL, {
@@ -91,6 +153,17 @@ export const generatePlan = action({
     let source = "standard";
     let aiError: string | null = null;
 
+    if (!hasKey()) {
+      await ctx.runMutation(internal.plans.savePlan, {
+        deviceId,
+        source: "basis",
+        summary: plan.summary,
+        notes: plan.notes,
+        days: plan.days,
+      });
+      return { source: "basis", aiError: null };
+    }
+
     try {
       const list = exercisesForLocation(p.location as Location).map((e) => ({
         id: e.id,
@@ -162,6 +235,15 @@ export const mythCheck = action({
     if (input.length < 5) {
       return { verdict: "kein_thema", explanation: "Bitte füge einen Tipp ein, den du prüfen möchtest." };
     }
+    if (!hasKey()) {
+      const m = knownMyth(input);
+      if (m) return { verdict: m.verdict, explanation: m.explanation };
+      return {
+        verdict: "unbekannt",
+        explanation:
+          "Zu diesem Tipp habe ich im Prototyp noch keine geprüfte Antwort. Probier einen der Beispiele oder frag z. B. nach Muskelkater, Dehnen, Bauchfett oder Protein.",
+      };
+    }
     try {
       const out = await callClaude(MYTH_SYSTEM, `Tipp: """${input}"""`, 600, 14000);
       const json = extractJson(out);
@@ -174,6 +256,8 @@ export const mythCheck = action({
       return { verdict, explanation };
     } catch (e: any) {
       console.error("mythCheck error:", e?.message ?? e);
+      const m = knownMyth(input);
+      if (m) return { verdict: m.verdict, explanation: m.explanation };
       return {
         verdict: "fehler",
         explanation:

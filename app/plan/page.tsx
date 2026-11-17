@@ -75,7 +75,7 @@ export default function PlanPage() {
       <h1>{doneInPlan.length === 0 ? "Bereit für dein erstes Training?" : `Diese Woche: ${doneThisWeek} von ${plan.days.length}`}</h1>
       <p className="muted">{plan.summary}</p>
 
-      {plan.source !== "ai" && (
+      {plan.source === "standard" && (
         <div className="banner">
           {aiError ?? "Das ist dein Standardplan für dein Ziel."} Du kannst mit diesem Plan sofort starten
           oder es nochmal mit der KI versuchen.

@@ -64,7 +64,7 @@ export default function Home() {
       </div>
 
       <Link href="/onboarding" className="btn">Los geht&apos;s</Link>
-      <p className="footer-note">Kein Konto nötig · Inhalte sind KI-generiert · Ersetzt keine ärztliche Beratung</p>
+      <p className="footer-note">Kein Konto nötig · Ersetzt keine ärztliche Beratung</p>
     </main>
   );
 }

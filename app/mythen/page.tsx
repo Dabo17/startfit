@@ -18,6 +18,7 @@ const VERDICT_LABEL: Record<string, string> = {
   stimmt_nicht: "✕ Stimmt nicht",
   kein_thema: "Kein Fitness-Thema",
   fehler: "Gerade nicht möglich",
+  unbekannt: "Noch keine Antwort hinterlegt",
 };
 
 export default function MythPage() {
@@ -77,8 +78,8 @@ export default function MythPage() {
         <div className="card" style={{ marginTop: 16 }} aria-live="polite">
           <div className={`verdict ${result.verdict}`}>{VERDICT_LABEL[result.verdict] ?? result.verdict}</div>
           <p style={{ margin: 0 }}>{result.explanation}</p>
-          {result.verdict !== "fehler" && result.verdict !== "kein_thema" && (
-            <p className="tiny" style={{ marginTop: 10, marginBottom: 0 }}>✦ KI-generierte Einschätzung · ersetzt keine ärztliche Beratung</p>
+          {!["fehler", "kein_thema", "unbekannt"].includes(result.verdict) && (
+            <p className="tiny" style={{ marginTop: 10, marginBottom: 0 }}>Einschätzung nach sportwissenschaftlichem Konsens · ersetzt keine ärztliche Beratung</p>
           )}
         </div>
       )}
