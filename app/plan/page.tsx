@@ -152,7 +152,9 @@ export default function PlanPage() {
       <Link href={`/training/${dayIndex}`} className="btn">
         {dayIndex === nextIndex ? "Training starten" : "Dieses Training starten"}
       </Link>
-      <p className="footer-note">Inhalte sind KI-generiert und ersetzen keine ärztliche Beratung.</p>
+      <p className="footer-note">
+        {plan.source === "ai" ? "Inhalte sind KI-generiert und ersetzen" : "Der Plan ersetzt"} keine ärztliche Beratung.
+      </p>
       <BottomNav />
     </main>
   );
