@@ -250,6 +250,11 @@ Erstelle daraus den persönlichen Wochenplan mit Begründungen.`;
             : "Die KI war nicht erreichbar.";
       detail = String(e?.message ?? e).slice(0, 300);
       console.error("generatePlan AI error:", detail);
+      // Ungültiger Schlüssel = wie "keine KI": Basisplan ohne Warnhinweis für Nutzer
+      if (/API 401|API 403/.test(detail)) {
+        source = "basis";
+        aiError = null;
+      }
     }
     console.log(`generatePlan: source=${source} provider=${provider()?.kind ?? "none"} ms=${Date.now() - started}`);
 
