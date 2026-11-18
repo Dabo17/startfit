@@ -164,7 +164,7 @@ export default function PlanPage() {
                   <div className="ex-name">{ex.name}</div>
                   <div className="ex-meta">
                     {e.sets > 1 ? `${e.sets} Sätze × ${e.reps}` : e.reps}
-                    {ex.category === "mobilitaet" && " · Aufwärmen"}
+                    {ex.category === "mobilitaet" && (ex.id === "cooldown" ? " · zum Abschluss" : " · Aufwärmen")}
                   </div>
                 </div>
                 <button

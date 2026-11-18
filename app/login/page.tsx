@@ -85,8 +85,8 @@ export default function LoginPage() {
       </div>
 
       <div className="seg full" role="tablist" style={{ marginBottom: 14 }}>
-        <button role="tab" aria-selected={mode === "login"} className={mode === "login" ? "selected" : ""} onClick={() => switchMode("login")}>Anmelden</button>
-        <button role="tab" aria-selected={mode === "register"} className={mode === "register" ? "selected" : ""} onClick={() => switchMode("register")}>Registrieren</button>
+        <button type="button" role="tab" aria-selected={mode === "login"} className={mode === "login" ? "selected" : ""} onClick={() => switchMode("login")}>Anmelden</button>
+        <button type="button" role="tab" aria-selected={mode === "register"} className={mode === "register" ? "selected" : ""} onClick={() => switchMode("register")}>Registrieren</button>
       </div>
 
       <form className="card" onSubmit={submit} noValidate>
