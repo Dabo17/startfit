@@ -7,6 +7,7 @@ import { exercisesForLocation, Location } from "./exercises";
 import {
   LABELS,
   ProfileInput,
+  recommendedSplit,
   buildStandardPlan,
   validateAiPlan,
 } from "./planLogic";
@@ -166,13 +167,15 @@ function toProfileInput(p: any): ProfileInput {
     location: p.location,
     work: p.work,
     trainingTime: p.trainingTime,
+    split: p.split ?? undefined,
   };
 }
 
-const PLAN_SYSTEM = `Du bist StartFit, ein freundlicher KI-Fitnesscoach für absolute Einsteiger.
+const PLAN_SYSTEM = `Du bist StartFit, ein freundlicher KI-Fitnesscoach für Einsteiger und Wiedereinsteiger.
 Regeln:
 - Verwende AUSSCHLIESSLICH Übungen aus der mitgelieferten Liste (Feld "id"). Erfinde keine Übungen.
 - Behalte die Anzahl der Trainingstage exakt bei und die Anzahl Übungen pro Tag ungefähr (±1).
+- Behalte die Plan-Art (Ganzkörper bzw. Split) und die Muskelgruppen pro Tag bei.
 - Schreibe für jede Übung ein "why" auf Deutsch, du-Form, max. 45 Wörter, ohne Fachjargon:
   welcher Muskel trainiert wird, wie sie dem Ziel der Person hilft und – wo passend – der Bezug zum Alltag (z. B. "gleicht langes Sitzen aus").
 - Keine medizinischen Versprechen, keine Heilversprechen.
@@ -180,11 +183,14 @@ Regeln:
 {"summary": "1-2 Sätze", "days": [{"title": "...", "focus": "...", "exercises": [{"id": "...", "sets": 3, "reps": "10–12 Wdh.", "why": "..."}]}]}`;
 
 export const generatePlan = action({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }): Promise<{ source: string; aiError: string | null; detail?: string | null; ms?: number }> => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }): Promise<{ source: string; aiError: string | null; detail?: string | null; ms?: number }> => {
+    const deviceId: string | null = await ctx.runQuery(internal.profiles.ownerInternal, { token });
+    if (!deviceId) throw new Error("NICHT_ANGEMELDET");
     const profileDoc = await ctx.runQuery(internal.profiles.getInternal, { deviceId });
     if (!profileDoc) throw new Error("Kein Profil gefunden");
-    const p = toProfileInput(profileDoc);
+    const account = await ctx.runQuery(internal.profiles.accountInternal, { owner: deviceId });
+    const p = { ...toProfileInput(profileDoc), age: account?.age };
     const skeleton = buildStandardPlan(p);
 
     let plan = skeleton;
@@ -215,6 +221,8 @@ export const generatePlan = action({
 - Ziel: ${LABELS.goal[p.goal]}
 - Erfahrung: ${LABELS.experience[p.experience]}
 - Zeit: ${p.daysPerWeek} Tage pro Woche, je ${p.minutes} Minuten
+- Plan-Art: ${LABELS.split[p.split ?? recommendedSplit(p.daysPerWeek)]}
+- Alter: ${p.age ?? "keine Angabe"}
 - Trainingsort: ${LABELS.location[p.location]}
 - Arbeit: ${LABELS.work[p.work]}
 - Bevorzugte Trainingszeit: ${LABELS.trainingTime[p.trainingTime]}

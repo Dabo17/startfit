@@ -19,11 +19,13 @@ Mobile Web-App: 5 Fragen → persönlicher Wochenplan mit „Warum?“ zu jeder 
 | P1 | Check-in „zu leicht / passt / zu schwer“ → nächstes Training passt sich an + Begründung | ✅ |
 | P1 | Profil änderbar → Plan wird neu erstellt, Verlauf bleibt | ✅ |
 | P1 | Mythen-Check (stimmt / teilweise / stimmt nicht, Hinweis bei Nicht-Fitness-Themen) | ✅ |
-| P1 | Login per E-Mail-Link | ⏳ (ohne Login funktioniert die App auf einem Gerät) |
+| P1 | Konto | ✅ Registrierung/Login per E-Mail + Passwort (statt E-Mail-Link), mit Name, Alter, Geschlecht |
 | – | Löschen auf Knopfdruck, KI-Kennzeichnung, API-Key nur serverseitig | ✅ |
 | neu | Fitness-Buddy: eigene Figur, Energie sinkt ohne Training, Ausrüstung pro Level | ✅ |
 | neu | XP & Level (Training, Sätze, Check-in, Wochenziel), Wochen-Serie | ✅ |
 | neu | Freunde: Opt-in „In der Nähe“ (PLZ-Bereich), Freundes-Code, Wochen-Rangliste, Anstupsen | ✅ |
+| neu | Onboarding: 6 Fragen, „trainiere bereits aktiv“, 1–7 Tage, 20 Min. bis 3 Std. (Schieberegler) | ✅ |
+| neu | Plan-Art: Ganzkörper, 2er-, 3er- oder 4er-Split (mit Empfehlung nach Tagen) | ✅ |
 
 ## Wie die KI eingebunden ist
 
@@ -58,4 +60,6 @@ convex/              Schema, Queries/Mutations, KI-Actions, kuratierte Übungsli
 lib/                 Geräte-ID, Progressionslogik
 convex/gamification  XP, Level, Energie/Laune des Buddys
 convex/social        Buddy, Freunde, Rangliste, Anstupsen (+ Demo-Profile)
+convex/auth          Registrierung, Login, Abmelden (PBKDF2-Passwort-Hash in convex/crypto.ts)
+convex/session       Sitzungs-Token → Konto; alle Datenfunktionen prüfen das serverseitig
 ```

@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { avatarValidator } from "./schema";
 import { computeStats, levelFromXp, levelTitle } from "./gamification";
+import { ownerOrNull } from "./session";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -112,8 +113,9 @@ async function allFriendships(ctx: any, meId: any) {
 // ---------------- Queries ----------------
 
 export const me = query({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const doc = await getMe(ctx, deviceId);
     if (!doc) return null;
     const nudges = await ctx.db
@@ -141,8 +143,9 @@ export const me = query({
 });
 
 export const nearby = query({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc || !meDoc.discoverable || !meDoc.plzArea || !meDoc.nickname) return { ready: false, people: [] };
     const { out, inc } = await allFriendships(ctx, meDoc._id);
@@ -171,8 +174,9 @@ export const nearby = query({
 });
 
 export const friends = query({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc) return null;
     const { out, inc } = await allFriendships(ctx, meDoc._id);
@@ -199,9 +203,10 @@ export const friends = query({
 // ---------------- Mutations ----------------
 
 export const saveBuddy = mutation({
-  args: { deviceId: v.string(), buddyName: v.string(), avatar: avatarValidator },
-  handler: async (ctx, { deviceId, buddyName, avatar }) => {
-    if (deviceId.length < 16) throw new Error("Ungültige Geräte-ID");
+  args: { token: v.string(), buddyName: v.string(), avatar: avatarValidator },
+  handler: async (ctx, { token, buddyName, avatar }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
+    if (!deviceId) throw new Error("NICHT_ANGEMELDET");
     const name = buddyName.trim().slice(0, 20) || "Buddy";
     const existing = await getMe(ctx, deviceId);
     if (existing) {
@@ -219,8 +224,9 @@ export const saveBuddy = mutation({
 });
 
 export const saveSocial = mutation({
-  args: { deviceId: v.string(), nickname: v.string(), plz: v.string(), discoverable: v.boolean() },
-  handler: async (ctx, { deviceId, nickname, plz, discoverable }) => {
+  args: { token: v.string(), nickname: v.string(), plz: v.string(), discoverable: v.boolean() },
+  handler: async (ctx, { token, nickname, plz, discoverable }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc) throw new Error("Bitte erst deinen Buddy erstellen.");
     const nick = nickname.trim().slice(0, 20);
@@ -284,8 +290,9 @@ async function connect(ctx: any, meDoc: any, target: any) {
 }
 
 export const requestFriend = mutation({
-  args: { deviceId: v.string(), targetId: v.id("social") },
-  handler: async (ctx, { deviceId, targetId }) => {
+  args: { token: v.string(), targetId: v.id("social") },
+  handler: async (ctx, { token, targetId }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc?.nickname) return { ok: false, message: "Lege zuerst deinen Spitznamen fest." };
     return await connect(ctx, meDoc, await ctx.db.get(targetId));
@@ -293,8 +300,9 @@ export const requestFriend = mutation({
 });
 
 export const addByCode = mutation({
-  args: { deviceId: v.string(), code: v.string() },
-  handler: async (ctx, { deviceId, code }) => {
+  args: { token: v.string(), code: v.string() },
+  handler: async (ctx, { token, code }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc?.nickname) return { ok: false, message: "Lege zuerst deinen Spitznamen fest." };
     const clean = code.trim().toUpperCase();
@@ -308,8 +316,9 @@ export const addByCode = mutation({
 });
 
 export const respond = mutation({
-  args: { deviceId: v.string(), requestId: v.id("friendships"), accept: v.boolean() },
-  handler: async (ctx, { deviceId, requestId, accept }) => {
+  args: { token: v.string(), requestId: v.id("friendships"), accept: v.boolean() },
+  handler: async (ctx, { token, requestId, accept }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     const f = await ctx.db.get(requestId);
     if (!meDoc || !f) return;
@@ -321,8 +330,9 @@ export const respond = mutation({
 });
 
 export const nudge = mutation({
-  args: { deviceId: v.string(), targetId: v.id("social") },
-  handler: async (ctx, { deviceId, targetId }) => {
+  args: { token: v.string(), targetId: v.id("social") },
+  handler: async (ctx, { token, targetId }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc) return { ok: false, message: "Kein Profil." };
     const f = await friendshipBetween(ctx, meDoc._id, targetId);
@@ -339,8 +349,9 @@ export const nudge = mutation({
 });
 
 export const markNudgesSeen = mutation({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const deviceId = (await ownerOrNull(ctx, token)) ?? "";
     const meDoc = await getMe(ctx, deviceId);
     if (!meDoc) return;
     const list = await ctx.db

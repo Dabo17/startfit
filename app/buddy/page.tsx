@@ -8,7 +8,7 @@ import { computeStats, moodText, WEEK_GOAL_BONUS } from "@/convex/gamification";
 import BottomNav from "@/components/BottomNav";
 import BuddyAvatar from "@/components/BuddyAvatar";
 import BuddyCreator from "@/components/BuddyCreator";
-import { useDeviceId } from "@/lib/device";
+import { useSessionToken } from "@/lib/session";
 
 const REWARDS = [
   { level: 2, label: "Stirnband" },
@@ -19,10 +19,10 @@ const REWARDS = [
 ];
 
 export default function BuddyPage() {
-  const deviceId = useDeviceId();
-  const me = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
-  const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
-  const profile = useQuery(api.profiles.get, deviceId ? { deviceId } : "skip");
+  const token = useSessionToken();
+  const me = useQuery(api.social.me, token ? { token } : "skip");
+  const workouts = useQuery(api.workouts.list, token ? { token } : "skip");
+  const profile = useQuery(api.profiles.get, token ? { token } : "skip");
   const markSeen = useMutation(api.social.markNudgesSeen);
   const [editing, setEditing] = useState(false);
 
@@ -67,7 +67,7 @@ export default function BuddyPage() {
             💪 {me.nudges.map((n: any) => n.from).filter((v: string, i: number, a: string[]) => a.indexOf(v) === i).join(", ")}{" "}
             {me.nudges.length === 1 ? "hat" : "haben"} dich angestupst!
           </span>
-          <button className="btn small secondary" onClick={() => deviceId && markSeen({ deviceId })}>Danke!</button>
+          <button className="btn small secondary" onClick={() => token && markSeen({ token })}>Danke!</button>
         </div>
       )}
 

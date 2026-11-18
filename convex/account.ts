@@ -1,10 +1,13 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { ownerOrNull } from "./session";
 
-/** DSGVO: Löschen auf Knopfdruck – entfernt Profil, Pläne, Trainingsverlauf, Buddy, Freundschaften. */
+/** DSGVO: Löschen auf Knopfdruck – entfernt Konto, Profil, Pläne, Trainingsverlauf, Buddy, Freundschaften. */
 export const deleteAll = mutation({
-  args: { deviceId: v.string() },
-  handler: async (ctx, { deviceId }) => {
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const deviceId = await ownerOrNull(ctx, token);
+    if (!deviceId) return 0;
     let count = 0;
 
     const social = await ctx.db
@@ -35,6 +38,14 @@ export const deleteAll = mutation({
         count++;
       }
     }
-    return count;
+    // Konto und alle Sitzungen löschen
+    const sessions = await ctx.db
+      .query("sessions")
+      .withIndex("by_user", (q: any) => q.eq("userId", deviceId))
+      .collect();
+    for (const sdoc of sessions) await ctx.db.delete(sdoc._id);
+    const user = await ctx.db.get(deviceId as any);
+    if (user) await ctx.db.delete(user._id);
+    return count + sessions.length + 1;
   },
 });

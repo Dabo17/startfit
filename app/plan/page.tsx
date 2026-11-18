@@ -9,16 +9,17 @@ import { EXERCISE_BY_ID } from "@/convex/exercises";
 import BottomNav from "@/components/BottomNav";
 import BuddyAvatar from "@/components/BuddyAvatar";
 import { computeStats, moodText } from "@/convex/gamification";
-import { useDeviceId } from "@/lib/device";
+import { formatMinutes } from "@/convex/planLogic";
+import { useSessionToken } from "@/lib/session";
 
 export default function PlanPage() {
-  const deviceId = useDeviceId();
+  const token = useSessionToken();
   const router = useRouter();
-  const plan = useQuery(api.plans.current, deviceId ? { deviceId } : "skip");
-  const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
+  const plan = useQuery(api.plans.current, token ? { token } : "skip");
+  const workouts = useQuery(api.workouts.list, token ? { token } : "skip");
   const generatePlan = useAction(api.ai.generatePlan);
-  const buddy = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
-  const profile = useQuery(api.profiles.get, deviceId ? { deviceId } : "skip");
+  const buddy = useQuery(api.social.me, token ? { token } : "skip");
+  const profile = useQuery(api.profiles.get, token ? { token } : "skip");
 
   const [active, setActive] = useState<number | null>(null);
   const [openWhy, setOpenWhy] = useState<Record<string, boolean>>({});
@@ -40,10 +41,10 @@ export default function PlanPage() {
   const dayIndex = active ?? nextIndex;
 
   async function retry() {
-    if (!deviceId) return;
+    if (!token) return;
     setRetrying(true);
     try {
-      const res = await generatePlan({ deviceId });
+      const res = await generatePlan({ token });
       setAiError(res?.aiError ?? null);
       try {
         if (res?.aiError) sessionStorage.setItem("startfit_ai_error", res.aiError);
@@ -148,7 +149,7 @@ export default function PlanPage() {
       <div className="card">
         <div className="row between" style={{ marginBottom: 4 }}>
           <h2 style={{ margin: 0 }}>{day.title.split(" · ")[1] ?? day.title}</h2>
-          <span className="tiny">ca. {day.estMinutes} Min.</span>
+          <span className="tiny">ca. {formatMinutes(day.estMinutes)}</span>
         </div>
         <p className="small muted">{day.focus}</p>
 

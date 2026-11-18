@@ -2,6 +2,7 @@
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { ReactNode, useMemo } from "react";
+import AuthGate from "./AuthGate";
 
 export default function ConvexClientProvider({ children }: { children: ReactNode }) {
   const url = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -19,5 +20,9 @@ export default function ConvexClientProvider({ children }: { children: ReactNode
       </main>
     );
   }
-  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+  return (
+    <ConvexProvider client={client}>
+      <AuthGate>{children}</AuthGate>
+    </ConvexProvider>
+  );
 }

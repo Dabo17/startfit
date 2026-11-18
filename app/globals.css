@@ -332,3 +332,5 @@ ul.mistakes li { padding: 8px 10px; background: var(--bad-soft); color: #7e1d17;
 .slider-ticks { display: flex; justify-content: space-between; margin: 2px 4px 0; }
 .slider-ticks button { background: none; border: 0; font-size: 13px; color: var(--ink-3); font-weight: 600; padding: 4px 6px; min-width: 32px; }
 .slider-ticks button.on { color: var(--accent); }
+.slider-ticks span { font-size: 13px; color: var(--ink-3); font-weight: 600; padding: 4px 2px; }
+.seg.full { display: grid; grid-template-columns: 1fr 1fr; }

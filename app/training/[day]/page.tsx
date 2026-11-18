@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { EXERCISE_BY_ID } from "@/convex/exercises";
-import { useDeviceId } from "@/lib/device";
+import { useSessionToken } from "@/lib/session";
 import { firstNumber, suggestionFor, unitOf } from "@/lib/progression";
 import { computeStats } from "@/convex/gamification";
 import BuddyAvatar from "@/components/BuddyAvatar";
@@ -17,13 +17,13 @@ export default function TrainingPage() {
   const params = useParams<{ day: string }>();
   const dayIndex = parseInt(params?.day ?? "0", 10) || 0;
   const router = useRouter();
-  const deviceId = useDeviceId();
-  const plan = useQuery(api.plans.current, deviceId ? { deviceId } : "skip");
-  const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
+  const token = useSessionToken();
+  const plan = useQuery(api.plans.current, token ? { token } : "skip");
+  const workouts = useQuery(api.workouts.list, token ? { token } : "skip");
   const saveWorkout = useMutation(api.workouts.save);
   const setFeedback = useMutation(api.workouts.setFeedback);
-  const buddy = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
-  const profile = useQuery(api.profiles.get, deviceId ? { deviceId } : "skip");
+  const buddy = useQuery(api.social.me, token ? { token } : "skip");
+  const profile = useQuery(api.profiles.get, token ? { token } : "skip");
   const [levelBefore, setLevelBefore] = useState<number | null>(null);
 
   const [state, setState] = useState<SetState[][] | null>(null);
@@ -79,7 +79,7 @@ export default function TrainingPage() {
     setLevelBefore(computeStats(workouts ?? [], profile?.daysPerWeek ?? 3).level);
     try {
       const id = await saveWorkout({
-        deviceId: deviceId!,
+        token: token!,
         planId: plan!._id,
         dayIndex,
         dayTitle: day.title,
@@ -106,9 +106,9 @@ export default function TrainingPage() {
   }
 
   async function giveFeedback(fb: "zu_leicht" | "passt" | "zu_schwer" | null) {
-    if (fb && savedId && deviceId) {
+    if (fb && savedId && token) {
       try {
-        await setFeedback({ deviceId, workoutId: savedId as any, feedback: fb });
+        await setFeedback({ token, workoutId: savedId as any, feedback: fb });
       } catch (e) {
         console.error(e);
       }

@@ -12,8 +12,21 @@ export type Pattern =
   | "mobilitaet"
   | "ausdauer";
 
+export type Group =
+  | "brust"
+  | "ruecken"
+  | "schultern"
+  | "bizeps"
+  | "trizeps"
+  | "beine"
+  | "po"
+  | "bauch"
+  | "mobil"
+  | "cardio";
+
 export type Exercise = {
   id: string;
+  group: Group;
   name: string;
   equipment: Equipment;
   category: Category;
@@ -31,6 +44,7 @@ export const EXERCISES: Exercise[] = [
   // ---------- Studio (Geräte) ----------
   {
     id: "beinpresse",
+    group: "beine",
     name: "Beinpresse",
     equipment: "gym",
     category: "kraft",
@@ -53,6 +67,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "latzug",
+    group: "ruecken",
     name: "Latzug",
     equipment: "gym",
     category: "kraft",
@@ -77,6 +92,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "rudern_kabel",
+    group: "ruecken",
     name: "Rudern am Kabelzug",
     equipment: "gym",
     category: "kraft",
@@ -101,6 +117,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "brustpresse",
+    group: "brust",
     name: "Brustpresse (Maschine)",
     equipment: "gym",
     category: "kraft",
@@ -123,6 +140,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "schulterpresse",
+    group: "schultern",
     name: "Schulterpresse (Maschine)",
     equipment: "gym",
     category: "kraft",
@@ -145,6 +163,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "beinbeuger",
+    group: "beine",
     name: "Beinbeuger (Maschine)",
     equipment: "gym",
     category: "kraft",
@@ -169,6 +188,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "rueckenstrecker",
+    group: "po",
     name: "Rückenstrecker (Hyperextension)",
     equipment: "gym",
     category: "kraft",
@@ -193,6 +213,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "crosstrainer",
+    group: "cardio",
     name: "Crosstrainer",
     equipment: "gym",
     category: "ausdauer",
@@ -214,6 +235,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "ergometer",
+    group: "cardio",
     name: "Fahrrad-Ergometer",
     equipment: "gym",
     category: "ausdauer",
@@ -236,6 +258,7 @@ export const EXERCISES: Exercise[] = [
   // ---------- Kurzhanteln ----------
   {
     id: "goblet_squat",
+    group: "beine",
     name: "Goblet Squat",
     equipment: "dumbbell",
     category: "kraft",
@@ -258,6 +281,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "rumaenisches_kreuzheben",
+    group: "po",
     name: "Rumänisches Kreuzheben (Kurzhantel)",
     equipment: "dumbbell",
     category: "kraft",
@@ -282,6 +306,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "kh_rudern",
+    group: "ruecken",
     name: "Einarmiges Kurzhantel-Rudern",
     equipment: "dumbbell",
     category: "kraft",
@@ -306,6 +331,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "kh_bankdruecken",
+    group: "brust",
     name: "Kurzhantel-Bodendrücken",
     equipment: "dumbbell",
     category: "kraft",
@@ -328,6 +354,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "kh_schulterdruecken",
+    group: "schultern",
     name: "Kurzhantel-Schulterdrücken",
     equipment: "dumbbell",
     category: "kraft",
@@ -350,6 +377,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "ausfallschritt_kh",
+    group: "beine",
     name: "Ausfallschritt mit Kurzhanteln",
     equipment: "dumbbell",
     category: "kraft",
@@ -372,6 +400,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "bizepscurl",
+    group: "bizeps",
     name: "Bizeps-Curl",
     equipment: "dumbbell",
     category: "kraft",
@@ -395,6 +424,7 @@ export const EXERCISES: Exercise[] = [
   // ---------- Eigengewicht ----------
   {
     id: "kniebeuge",
+    group: "beine",
     name: "Kniebeuge (Eigengewicht)",
     equipment: "bodyweight",
     category: "kraft",
@@ -417,6 +447,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "liegestuetz_erhoeht",
+    group: "brust",
     name: "Liegestütz (erhöht)",
     equipment: "bodyweight",
     category: "kraft",
@@ -439,6 +470,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "liegestuetz",
+    group: "brust",
     name: "Liegestütz",
     equipment: "bodyweight",
     category: "kraft",
@@ -461,6 +493,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "glute_bridge",
+    group: "po",
     name: "Glute Bridge (Beckenheben)",
     equipment: "bodyweight",
     category: "kraft",
@@ -485,6 +518,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "unterarmstuetz",
+    group: "bauch",
     name: "Unterarmstütz (Plank)",
     equipment: "bodyweight",
     category: "kraft",
@@ -507,6 +541,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "dead_bug",
+    group: "bauch",
     name: "Dead Bug",
     equipment: "bodyweight",
     category: "kraft",
@@ -529,6 +564,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "seitstuetz",
+    group: "bauch",
     name: "Seitstütz",
     equipment: "bodyweight",
     category: "kraft",
@@ -551,6 +587,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "superman",
+    group: "ruecken",
     name: "Superman (Rückenheben im Liegen)",
     equipment: "bodyweight",
     category: "kraft",
@@ -575,6 +612,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "ausfallschritt",
+    group: "beine",
     name: "Ausfallschritt (Eigengewicht)",
     equipment: "bodyweight",
     category: "kraft",
@@ -597,6 +635,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "hampelmann",
+    group: "cardio",
     name: "Hampelmann",
     equipment: "bodyweight",
     category: "ausdauer",
@@ -619,6 +658,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "mountain_climbers",
+    group: "cardio",
     name: "Mountain Climbers",
     equipment: "bodyweight",
     category: "ausdauer",
@@ -642,6 +682,7 @@ export const EXERCISES: Exercise[] = [
   // ---------- Mobilität ----------
   {
     id: "katze_kuh",
+    group: "mobil",
     name: "Katze-Kuh",
     equipment: "bodyweight",
     category: "mobilitaet",
@@ -666,6 +707,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "hueftbeuger_dehnung",
+    group: "mobil",
     name: "Hüftbeuger-Dehnung",
     equipment: "bodyweight",
     category: "mobilitaet",
@@ -690,6 +732,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "brustwirbel_rotation",
+    group: "mobil",
     name: "Brustwirbelsäulen-Rotation",
     equipment: "bodyweight",
     category: "mobilitaet",
@@ -714,6 +757,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: "weltbeste_dehnung",
+    group: "mobil",
     name: "Ausfallschritt mit Rotation",
     equipment: "bodyweight",
     category: "mobilitaet",
@@ -735,6 +779,239 @@ export const EXERCISES: Exercise[] = [
       "Hüfte sinkt nicht tief genug.",
       "Zu schnell ausführen.",
     ],
+  },
+  // ---------- Ergänzungen für Splits und längere Einheiten ----------
+  {
+    id: "beinstrecker",
+    group: "beine",
+    name: "Beinstrecker (Maschine)",
+    equipment: "gym",
+    category: "kraft",
+    pattern: "beine",
+    muscles: "vordere Oberschenkel",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Kräftigt gezielt die vordere Oberschenkelmuskulatur – sie stabilisiert dein Knie beim Gehen, Treppensteigen und Springen.",
+    steps: [
+      "Rückenlehne so einstellen, dass die Knie am Drehpunkt der Maschine liegen.",
+      "Polster liegt vorne knapp über den Fußgelenken.",
+      "Beine kontrolliert strecken, oben kurz halten.",
+      "Langsam wieder absenken.",
+    ],
+    mistakes: ["Mit Schwung arbeiten.", "Gesäß hebt vom Sitz ab."],
+  },
+  {
+    id: "wadenheben",
+    group: "beine",
+    name: "Wadenheben",
+    equipment: "bodyweight",
+    category: "kraft",
+    pattern: "beine",
+    muscles: "Waden",
+    usesWeight: false,
+    unit: "wdh",
+    baseWhy: "Stärkt die Waden und stabilisiert dein Sprunggelenk – hilfreich beim Laufen und im Alltag.",
+    steps: [
+      "Hüftbreit hinstellen, bei Bedarf an der Wand festhalten.",
+      "Langsam auf die Zehenspitzen drücken.",
+      "Oben kurz halten.",
+      "Kontrolliert absenken.",
+    ],
+    mistakes: ["Zu schnell wippen.", "Nur halbe Bewegung."],
+  },
+  {
+    id: "hip_thrust_kh",
+    group: "po",
+    name: "Hip Thrust mit Kurzhantel",
+    equipment: "dumbbell",
+    category: "kraft",
+    pattern: "huefte",
+    muscles: "Po und Oberschenkelrückseite",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Die effektivste Übung für einen kräftigen Po – der wichtigste Muskel für eine stabile Hüfte und einen entlasteten Rücken.",
+    sittingWhy: "Weckt den Po, der durch langes Sitzen träge wird, und entlastet so den unteren Rücken.",
+    steps: [
+      "Schulterblätter an eine Bank oder ein Sofa lehnen.",
+      "Hantel auf die Hüfte legen und festhalten.",
+      "Po anspannen und Hüfte nach oben schieben.",
+      "Langsam absenken.",
+    ],
+    mistakes: ["Ins Hohlkreuz drücken.", "Füße zu nah am Po."],
+  },
+  {
+    id: "seitheben",
+    group: "schultern",
+    name: "Seitheben mit Kurzhanteln",
+    equipment: "dumbbell",
+    category: "kraft",
+    pattern: "druecken",
+    muscles: "seitliche Schultern",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Trainiert die seitlichen Schultern – sie sorgen für stabile Schultergelenke und eine breitere Silhouette.",
+    steps: [
+      "Aufrecht stehen, leichte Hanteln seitlich halten.",
+      "Arme leicht gebeugt seitlich bis Schulterhöhe heben.",
+      "Kurz halten.",
+      "Langsam absenken.",
+    ],
+    mistakes: ["Zu schweres Gewicht mit Schwung.", "Schultern zu den Ohren ziehen."],
+  },
+  {
+    id: "face_pulls",
+    group: "schultern",
+    name: "Face Pulls am Kabelzug",
+    equipment: "gym",
+    category: "kraft",
+    pattern: "ziehen",
+    muscles: "hintere Schultern und oberer Rücken",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Stärkt die hinteren Schultern – das Gegengewicht zu Drückübungen und gut für die Schultergesundheit.",
+    sittingWhy: "Zieht die Schultern zurück und hilft gegen die nach vorne gerundete Haltung vom Schreibtisch.",
+    steps: [
+      "Seil auf Kopfhöhe einhängen, mit beiden Händen greifen.",
+      "Seil Richtung Gesicht ziehen, Ellenbogen gehen nach außen.",
+      "Schulterblätter zusammendrücken.",
+      "Kontrolliert zurück.",
+    ],
+    mistakes: ["Mit dem Oberkörper nach hinten lehnen.", "Ellenbogen zu tief."],
+  },
+  {
+    id: "trizeps_kabel",
+    group: "trizeps",
+    name: "Trizepsdrücken am Kabelzug",
+    equipment: "gym",
+    category: "kraft",
+    pattern: "druecken",
+    muscles: "Trizeps (Armrückseite)",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Kräftigt die Armrückseite – sie hilft bei allen Drückbewegungen wie Liegestütz oder Brustpresse.",
+    steps: [
+      "Vor den Kabelzug stellen, Griff oder Seil oben greifen.",
+      "Ellenbogen eng am Körper fixieren.",
+      "Unterarme nach unten strecken.",
+      "Langsam zurück bis ca. 90 Grad.",
+    ],
+    mistakes: ["Ellenbogen wandern nach vorne.", "Mit dem Oberkörper mitdrücken."],
+  },
+  {
+    id: "trizeps_kickback",
+    group: "trizeps",
+    name: "Trizeps-Kickback",
+    equipment: "dumbbell",
+    category: "kraft",
+    pattern: "druecken",
+    muscles: "Trizeps (Armrückseite)",
+    usesWeight: true,
+    unit: "wdh",
+    baseWhy: "Trainiert die Armrückseite gezielt mit einer Hantel – für kräftigere Arme beim Drücken und Abstützen.",
+    steps: [
+      "Oberkörper nach vorne neigen, eine Hand abstützen.",
+      "Oberarm parallel zum Körper halten.",
+      "Unterarm nach hinten strecken.",
+      "Langsam zurückführen.",
+    ],
+    mistakes: ["Oberarm bewegt sich mit.", "Zu schnell schwingen."],
+  },
+  {
+    id: "dips_bank",
+    group: "trizeps",
+    name: "Dips an Bank oder Stuhl",
+    equipment: "bodyweight",
+    category: "kraft",
+    pattern: "druecken",
+    muscles: "Trizeps und Schultern",
+    usesWeight: false,
+    unit: "wdh",
+    baseWhy: "Kräftigt Armrückseite und Schultern mit dem eigenen Körpergewicht – ganz ohne Geräte.",
+    steps: [
+      "Hände hinter dir auf eine stabile Bank oder einen Stuhl.",
+      "Beine angewinkelt, Po nah an der Kante.",
+      "Ellenbogen nach hinten beugen und absenken.",
+      "Wieder hochdrücken.",
+    ],
+    mistakes: ["Zu tief absenken – Schultern schmerzen.", "Ellenbogen gehen nach außen."],
+  },
+  {
+    id: "tischrudern",
+    group: "ruecken",
+    name: "Rudern unter dem Tisch",
+    equipment: "bodyweight",
+    category: "kraft",
+    pattern: "ziehen",
+    muscles: "Rücken und Bizeps",
+    usesWeight: false,
+    unit: "wdh",
+    baseWhy: "Rückentraining ohne Geräte: Du ziehst dich an einer stabilen Tischkante hoch und kräftigst so den oberen Rücken.",
+    sittingWhy: "Stärkt den oberen Rücken und hilft gegen die gebeugte Haltung vom Sitzen.",
+    steps: [
+      "Unter einen sehr stabilen Tisch legen, Kante schulterbreit greifen.",
+      "Körper gestreckt, Fersen am Boden.",
+      "Brust zur Tischkante ziehen.",
+      "Langsam ablassen.",
+    ],
+    mistakes: ["Hüfte hängt durch.", "Wackeliger Tisch – Sicherheit geht vor."],
+  },
+  {
+    id: "crunch",
+    group: "bauch",
+    name: "Crunch",
+    equipment: "bodyweight",
+    category: "kraft",
+    pattern: "rumpf",
+    muscles: "gerade Bauchmuskeln",
+    usesWeight: false,
+    unit: "wdh",
+    baseWhy: "Trainiert die geraden Bauchmuskeln und stärkt deine Körpermitte.",
+    steps: [
+      "Auf den Rücken legen, Beine angewinkelt.",
+      "Hände locker an die Schläfen.",
+      "Schultern leicht vom Boden heben, Blick zur Decke.",
+      "Langsam ablegen.",
+    ],
+    mistakes: ["Am Nacken ziehen.", "Mit Schwung hochkommen."],
+  },
+  {
+    id: "joggen",
+    group: "cardio",
+    name: "Lockeres Laufen / zügiges Gehen",
+    equipment: "bodyweight",
+    category: "ausdauer",
+    pattern: "ausdauer",
+    muscles: "Herz-Kreislauf und Beine",
+    usesWeight: false,
+    unit: "sek",
+    baseWhy: "Stärkt Herz und Ausdauer und lässt sich überall machen – draußen oder auf dem Laufband.",
+    steps: [
+      "Locker starten, die ersten Minuten zügig gehen.",
+      "In ein Tempo wechseln, bei dem du dich noch unterhalten kannst.",
+      "Gleichmäßig atmen.",
+      "Zum Schluss ein paar Minuten auslaufen.",
+    ],
+    mistakes: ["Zu schnell starten.", "Ungeeignete Schuhe."],
+  },
+  {
+    id: "cooldown",
+    group: "mobil",
+    name: "Cool-down: Dehnen & Entspannen",
+    equipment: "bodyweight",
+    category: "mobilitaet",
+    pattern: "mobilitaet",
+    muscles: "ganzer Körper",
+    usesWeight: false,
+    unit: "sek",
+    baseWhy: "Ruhiges Dehnen nach dem Training senkt den Puls, lockert die trainierten Muskeln und hilft dir, runterzukommen.",
+    sittingWhy: "Dehnt Hüfte, Brust und Oberschenkelrückseite – genau die Bereiche, die beim Sitzen verkürzen.",
+    steps: [
+      "Puls ein paar Minuten locker ausklingen lassen.",
+      "Die trainierten Muskeln je 30–45 Sekunden sanft dehnen.",
+      "Ruhig und tief atmen, nicht wippen.",
+      "Zum Schluss eine Minute entspannt liegen.",
+    ],
+    mistakes: ["Ruckartig dehnen.", "Bis in den Schmerz gehen."],
   },
 ];
 

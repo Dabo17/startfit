@@ -1,32 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "convex/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { api } from "@/convex/_generated/api";
-import { useDeviceId } from "@/lib/device";
+import BuddyAvatar from "@/components/BuddyAvatar";
 
+// Öffentliche Startseite. Angemeldete Nutzer leitet der AuthGate direkt weiter.
 export default function Home() {
-  const deviceId = useDeviceId();
-  const router = useRouter();
-  const plan = useQuery(api.plans.current, deviceId ? { deviceId } : "skip");
-
-  // Wiederkehrende Nutzer landen direkt beim Plan
-  useEffect(() => {
-    if (plan) router.replace("/plan");
-  }, [plan, router]);
-
-  if (!deviceId || plan === undefined || plan) {
-    return (
-      <main className="shell no-nav">
-        <div className="center-screen">
-          <div className="spinner" aria-hidden />
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="shell no-nav">
       <div className="hero">
@@ -42,29 +20,35 @@ export default function Home() {
           <li>
             <span className="ico">1</span>
             <div>
-              <strong>5 kurze Fragen</strong>
-              <div className="muted small">Ziel, Erfahrung, Zeit, Ort und Alltag – nur antippen.</div>
+              <strong>Ein paar kurze Fragen</strong>
+              <div className="muted small">Ziel, Erfahrung, Zeit, Ort, Alltag und Plan-Art.</div>
             </div>
           </li>
           <li>
             <span className="ico">2</span>
             <div>
               <strong>Plan mit Begründung</strong>
-              <div className="muted small">Jede Übung erklärt: welcher Muskel, warum für dich.</div>
+              <div className="muted small">Ganzkörper oder Split – jede Übung erklärt.</div>
             </div>
           </li>
           <li>
             <span className="ico">3</span>
             <div>
-              <strong>Fortschritt sehen</strong>
-              <div className="muted small">Sätze abhaken und deine Entwicklung verfolgen.</div>
+              <strong>Mit Buddy und Freunden dranbleiben</strong>
+              <div className="muted small">XP sammeln, Level aufsteigen, gegenseitig anstupsen.</div>
             </div>
           </li>
         </ul>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
+          <BuddyAvatar mood="top" level={3} size={110} />
+        </div>
       </div>
 
-      <Link href="/onboarding" className="btn">Los geht&apos;s</Link>
-      <p className="footer-note">Kein Konto nötig · Ersetzt keine ärztliche Beratung</p>
+      <div className="stack">
+        <Link href="/login?modus=registrieren" className="btn">Konto erstellen</Link>
+        <Link href="/login" className="btn ghost">Ich habe schon ein Konto</Link>
+      </div>
+      <p className="footer-note">Ersetzt keine ärztliche Beratung</p>
     </main>
   );
 }

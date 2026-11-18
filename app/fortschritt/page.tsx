@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { EXERCISE_BY_ID } from "@/convex/exercises";
 import BottomNav from "@/components/BottomNav";
-import { useDeviceId } from "@/lib/device";
+import { useSessionToken } from "@/lib/session";
 
 type Point = { t: number; v: number };
 
@@ -33,8 +33,8 @@ function Sparkline({ points, unit }: { points: Point[]; unit: string }) {
 }
 
 export default function ProgressPage() {
-  const deviceId = useDeviceId();
-  const workouts = useQuery(api.workouts.list, deviceId ? { deviceId } : "skip");
+  const token = useSessionToken();
+  const workouts = useQuery(api.workouts.list, token ? { token } : "skip");
 
   if (!workouts) {
     return (

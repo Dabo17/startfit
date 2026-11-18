@@ -3,7 +3,7 @@
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
-import { getOrCreateDeviceId } from "@/lib/device";
+import { getToken } from "@/lib/session";
 import BuddyAvatar, { Avatar, DEFAULT_AVATAR, HAIR_COLORS, HAIR_STYLES, SHIRTS, SKINS } from "./BuddyAvatar";
 
 export default function BuddyCreator({
@@ -32,7 +32,7 @@ export default function BuddyCreator({
     }
     setSaving(true);
     try {
-      await save({ deviceId: getOrCreateDeviceId(), buddyName: name.trim(), avatar });
+      await save({ token: getToken() ?? "", buddyName: name.trim(), avatar });
       onDone?.();
     } catch (e) {
       console.error(e);

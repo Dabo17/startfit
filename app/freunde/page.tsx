@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import BottomNav from "@/components/BottomNav";
 import BuddyAvatar from "@/components/BuddyAvatar";
-import { useDeviceId } from "@/lib/device";
+import { useSessionToken } from "@/lib/session";
 
 function Mini({ p }: { p: any }) {
   return (
@@ -17,16 +17,17 @@ function Mini({ p }: { p: any }) {
 }
 
 export default function FriendsPage() {
-  const deviceId = useDeviceId();
-  const me = useQuery(api.social.me, deviceId ? { deviceId } : "skip");
-  const friends = useQuery(api.social.friends, deviceId ? { deviceId } : "skip");
-  const nearby = useQuery(api.social.nearby, deviceId ? { deviceId } : "skip");
+  const token = useSessionToken();
+  const me = useQuery(api.social.me, token ? { token } : "skip");
+  const friends = useQuery(api.social.friends, token ? { token } : "skip");
+  const nearby = useQuery(api.social.nearby, token ? { token } : "skip");
   const ensureDemo = useMutation(api.social.ensureDemo);
   const saveSocial = useMutation(api.social.saveSocial);
   const requestFriend = useMutation(api.social.requestFriend);
   const addByCode = useMutation(api.social.addByCode);
   const respond = useMutation(api.social.respond);
   const nudge = useMutation(api.social.nudge);
+  const account = useQuery(api.auth.me, token ? { token } : "skip");
 
   const [editing, setEditing] = useState(false);
   const [nick, setNick] = useState("");
@@ -42,6 +43,11 @@ export default function FriendsPage() {
     demoDone.current = true;
     ensureDemo({}).catch(() => {});
   }, [ensureDemo]);
+
+  // Spitzname mit dem Vornamen vorbelegen
+  useEffect(() => {
+    if (account && me && !me.nickname && !nick) setNick(account.name.split(" ")[0]);
+  }, [account, me, nick]);
 
   useEffect(() => {
     if (!toast) return;
@@ -86,7 +92,7 @@ export default function FriendsPage() {
     if (nick.trim().length < 2) return setFormError("Bitte wähle einen Spitznamen (mind. 2 Zeichen).");
     if (!/^\d{5}$/.test(plz)) return setFormError("Bitte gib eine 5-stellige Postleitzahl ein.");
     try {
-      await saveSocial({ deviceId: deviceId!, nickname: nick, plz, discoverable: visible });
+      await saveSocial({ token: token!, nickname: nick, plz, discoverable: visible });
       setEditing(false);
       setToast("Gespeichert");
     } catch (e: any) {
@@ -188,8 +194,8 @@ export default function FriendsPage() {
                 <div className="sub">Level {p.level} · {p.levelTitle}</div>
               </div>
               <div className="row" style={{ gap: 6 }}>
-                <button className="btn small" onClick={() => run(respond({ deviceId: deviceId!, requestId: p.requestId, accept: true }))}>Annehmen</button>
-                <button className="btn small ghost" aria-label="Ablehnen" onClick={() => run(respond({ deviceId: deviceId!, requestId: p.requestId, accept: false }))}>✕</button>
+                <button className="btn small" onClick={() => run(respond({ token: token!, requestId: p.requestId, accept: true }))}>Annehmen</button>
+                <button className="btn small ghost" aria-label="Ablehnen" onClick={() => run(respond({ token: token!, requestId: p.requestId, accept: false }))}>✕</button>
               </div>
             </div>
           ))}
@@ -220,7 +226,7 @@ export default function FriendsPage() {
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontWeight: 800 }}>{p.weeklyXp}</div>
                 {!p.isMe && (
-                  <button className="link" style={{ background: "none", border: 0, padding: 0 }} onClick={() => run(nudge({ deviceId: deviceId!, targetId: p.id }))}>
+                  <button className="link" style={{ background: "none", border: 0, padding: 0 }} onClick={() => run(nudge({ token: token!, targetId: p.id }))}>
                     Anstupsen
                   </button>
                 )}
@@ -252,7 +258,7 @@ export default function FriendsPage() {
             style={{ minHeight: 48 }}
             onClick={async () => {
               if (code.trim().length !== 6) return setToast("Der Code hat 6 Zeichen.");
-              await run(addByCode({ deviceId: deviceId!, code }));
+              await run(addByCode({ token: token!, code }));
               setCode("");
             }}
           >
@@ -285,7 +291,7 @@ export default function FriendsPage() {
               {p.relation === "sent" ? (
                 <span className="tiny">Angefragt</span>
               ) : (
-                <button className="btn small secondary" onClick={() => run(requestFriend({ deviceId: deviceId!, targetId: p.id }))}>
+                <button className="btn small secondary" onClick={() => run(requestFriend({ token: token!, targetId: p.id }))}>
                   {p.relation === "received" ? "Annehmen" : "+ Freund"}
                 </button>
               )}

@@ -23,6 +23,29 @@ export const avatarValidator = v.object({
 });
 
 export default defineSchema({
+  // Konten: E-Mail + Passwort (PBKDF2-Hash mit Salt). Name, Alter, Geschlecht für die Personalisierung.
+  users: defineTable({
+    email: v.string(),
+    passwordHash: v.string(),
+    salt: v.string(),
+    iterations: v.number(),
+    name: v.string(),
+    age: v.number(),
+    gender: v.string(), // "weiblich" | "maennlich" | "divers" | "keine_angabe"
+    createdAt: v.number(),
+  }).index("by_email", ["email"]),
+
+  sessions: defineTable({
+    token: v.string(),
+    userId: v.id("users"),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["userId"]),
+
+  // Hinweis: Das Feld "deviceId" in den folgenden Tabellen enthält den Besitzer-Schlüssel
+  // (= ID des angemeldeten Kontos). Der Name blieb aus Kompatibilitätsgründen erhalten.
   // Kein Name, keine E-Mail, keine Gesundheitsdaten (DSGVO Art. 9) – nur Trainingspräferenzen.
   profiles: defineTable({
     deviceId: v.string(),
@@ -33,6 +56,7 @@ export default defineSchema({
     location: v.string(),
     work: v.string(),
     trainingTime: v.string(),
+    split: v.optional(v.string()), // "ganzkoerper" | "split2" | "split3" | "split4"
     consentAt: v.number(),
     updatedAt: v.number(),
   }).index("by_device", ["deviceId"]),
